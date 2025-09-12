@@ -1,0 +1,21 @@
+[package]
+name = "pqcrypto_bindings"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "pqcrypto_bindings"
+crate-type = ["cdylib"]
+
+[dependencies]
+# KEM: Kyber512
+pqcrypto-kyber = "0.4.0"
+# Signature: Falcon512
+pqcrypto-falcon = "0.4.0"
+# The traits crate for as_bytes()/from_bytes()
+pqcrypto-traits = "0.3.5"
+# PyO3 for Python bindings
+pyo3 = { version = "0.20", features = ["extension-module"] }
+
+[build-dependencies]
+maturin = "1"
