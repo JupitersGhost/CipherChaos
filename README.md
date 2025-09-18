@@ -16,11 +16,12 @@ This system has been tested on Windows 11 with ESP32-S3 development boards and s
 
 ### Core Functionality
 - **Multi-Source Entropy**: Keystroke timing, mouse movement, ESP32 TRNG, USB jitter
-- **Post-Quantum Cryptography**: Kyber512 KEM and Falcon512 signatures via Rust bindings
+- **Classical Cryptography**: High-quality AES256 key generation with comprehensive entropy auditing
 - **Real-time Visualization**: Live entropy monitoring with animated displays
 - **Enhanced Auditing**: NIST-inspired entropy quality assessment by "Echo-tan"
 - **Hardware Integration**: ESP32-S3 with WS2812 RGB LEDs and enhanced firmware
 - **Network Support**: CobraMesh/Headscale integration for distributed entropy
+- **Experimental PQC**: Kyber512 KEM and Falcon512 signatures (work in progress)
 
 ### ESP32-S3 Features (Cipher-chan Enhanced Firmware v2.1)
 - **TRNG Streaming**: High-frequency true random number generation
@@ -44,9 +45,11 @@ This system has been tested on Windows 11 with ESP32-S3 development boards and s
 # Python 3.8+ required
 pip install -r requirements.txt
 
-# For PQC support (optional but recommended):
-# Install Rust toolchain first, then:
-maturin develop
+# For experimental PQC support (optional):
+# 1. Install Rust toolchain from https://rustup.rs/
+# 2. Install maturin: pip install maturin
+# 3. Build bindings: maturin develop
+# Note: PQC features are experimental and not fully functional
 ```
 
 ### Hardware Setup
@@ -81,16 +84,18 @@ maturin develop
    pip install -r requirements.txt
    ```
 
-4. **Build PQC bindings** (optional - work in progress):
+4. **Build PQC bindings** (optional - experimental feature):
    ```bash
-   # Install Rust toolchain first:
-   # https://rustup.rs/
+   # Only needed if you want to experiment with PQC features
+   # Install Rust toolchain first: https://rustup.rs/
    
    # Install maturin (Python build tool for Rust)
    pip install maturin
    
-   # Build and install the PQC bindings (from root directory)
+   # Build and install the experimental PQC bindings
    maturin develop
+   
+   # Note: This enables the PQC checkbox in GUI, but functionality is limited
    ```
 
 5. **Flash ESP32-S3 firmware**:
@@ -152,26 +157,46 @@ The firmware stores configuration in `cipher_enhanced_cfg.json`:
 - **Serial**: USB CDC (115200 baud)
 
 ## Post-Quantum Cryptography
-CURRENTLY A WORK IN PROGRESS BUT BELOW IS WHAT IS BEING ADDED
 
-### Supported Algorithms
-- **Kyber512**: Key Encapsulation Mechanism for key wrapping
-- **Falcon512**: Digital signatures for key authentication
+**⚠️ EXPERIMENTAL FEATURE - WORK IN PROGRESS ⚠️**
 
-### PQC Requirements
+The PQC implementation is currently under development and should be considered experimental. While the basic framework exists, the functionality is incomplete and not recommended for production use.
+
+### Current Implementation Status
+- **Framework**: Basic PQC manager and key wrapping structure implemented
+- **Algorithms**: Kyber512 KEM and Falcon512 signatures (via Rust bindings)
+- **Status**: Bindings compile but full integration is incomplete
+- **GUI Integration**: PQC checkbox present but functionality limited
+- **Key Storage**: PQC-wrapped key saving partially implemented
+
+### Building PQC Support (Optional/Experimental)
 ```bash
-# Install Rust (required for PQC bindings)
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+# Install Rust toolchain first:
+# https://rustup.rs/
 
-# Build the bindings (from root directory)
+# Install maturin (Python build tool for Rust)
+pip install maturin
+
+# Build the experimental PQC bindings
 maturin develop
+
+# Note: Even with successful compilation, PQC features are not fully functional
 ```
 
-### Usage
-1. Enable "Enable PQC Key Wrapping" in the GUI
-2. Ensure entropy quality meets PQC standards (70%+ score)
-3. Keys will be automatically wrapped with post-quantum protection
-4. Wrapped keys are saved with full metadata and provenance
+### What Works vs. What Doesn't
+**Currently Working:**
+- Rust bindings compilation
+- Basic PQC manager initialization
+- Classical entropy generation and key forging
+
+**Not Yet Working:**
+- Complete PQC key wrapping integration
+- Reliable PQC key unwrapping/verification
+- Full post-quantum key lifecycle management
+- Production-ready PQC entropy assessment
+
+### Future Development
+The PQC implementation will be completed in future releases. Currently, CipherChaos operates primarily in classical cryptography mode with high-quality entropy generation suitable for standard AES256 keys.
 
 ## Network Integration
 
@@ -209,8 +234,8 @@ The main GUI features dynamic quotes from Cipher, a chaotic frenzy fueled anime 
 - **Key Generation**: "Another key minted—smell that? That's post-quantum spice."
 - **Network**: "Packets scrambled, mesh tangled—chaos relay primed!"
 
-### cipher-tan (ESP32 Firmware)
-The ESP32 firmware features additional quotes:
+### Cipher-tan (ESP32 Firmware)
+The ESP32 firmware features additional quotes from Cipher:
 - **Boot Messages**: "^^^ RNG Queen reporting for duty! Let's chaos it up!"
 - **RGB Updates**: "*** Pretty colors! My LED is definitely more stylish!"
 - **Key Forging**: "[*] Key forged in the fires of chaos!"
@@ -301,7 +326,7 @@ This project uses:
 
 ## Character & Art
 
-CipherChaos and cipher-tan are original characters created for this project, representing the chaotic and precise nature of cryptographic entropy generation. The characters embody both the unpredictability of true randomness and the mathematical precision required for cryptographic applications.
+Cipher-tan is an original character created for this project, representing the chaotic and precise nature of cryptographic entropy generation, while also being fun. The character embodies both the unpredictability of true randomness and the mathematical precision required for cryptographic applications.
 
 ## Contributing
 
