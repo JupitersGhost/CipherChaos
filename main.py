@@ -1,4 +1,4 @@
-# Cipher-chan Enhanced ESP32-S3 Firmware v2.1 - Fixed & Complete
+# cipher-tan Enhanced ESP32-S3 Firmware v2.1 - Fixed & Complete
 # Addresses serial timeout issues, LED configuration, and adds entropy tracking
 
 import sys
@@ -15,7 +15,7 @@ import ubinascii
 from machine import Timer, Pin, freq
 import uselect
 
-VERSION = "Cipher-chan Enhanced v2.1-Fixed-Complete"
+VERSION = "cipher-tan Enhanced v2.1-Fixed-Complete"
 DEVICE_ID = "cipher@cobra-mesh"
 
 # Configuration
@@ -32,10 +32,10 @@ DEFAULTS = {
     "rgb_pins": [47, 21, 14]  # Fallback RGB pins if WS2812 fails
 }
 
-# Cipher-chan personality
+# cipher-tan personality
 CIPHER_PERSONALITY = {
     "startup": [
-        "*** Cipher-chan online! Ready to wreak cryptographic havoc!",
+        "*** cipher-tan online! Ready to wreak cryptographic havoc!",
         "^^^ RNG Queen reporting for duty! Let's chaos it up!",
         ">>> Boot complete! Time to turn silicon into pure randomness!",
         "=== Systems online! My circuits are tingling with anticipation~",
@@ -60,11 +60,11 @@ CIPHER_PERSONALITY = {
         "[!] Minor glitch! I'm too advanced to stay broken~",
         "<!> System hiccup! Time for graceful recovery!",
         ":-P Plot twist! I call this 'added randomness'!",
-        "\\m/ Error handled like a boss! Cipher-chan recovers!"
+        "\\m/ Error handled like a boss! cipher-tan recovers!"
     ]
 }
 
-class CipherChanHardware:
+class ciphertanHardware:
     """Hardware abstraction layer"""
     
     def __init__(self, config):
@@ -162,13 +162,13 @@ class CipherChanHardware:
             print(f"[ERROR] LED set color failed: {e}")
             return False
 
-class CipherChanSystem:
+class ciphertanSystem:
     def __init__(self):
         # Load configuration first
         self.config = self.load_config()
         
         # Initialize hardware
-        self.hardware = CipherChanHardware(self.config)
+        self.hardware = ciphertanHardware(self.config)
         
         # System state
         self.brightness = self.config["brightness"]
@@ -256,7 +256,7 @@ class CipherChanSystem:
             return False
     
     def speak(self, category, force=False):
-        """Cipher-chan personality system"""
+        """cipher-tan personality system"""
         current_time = time.ticks_ms()
         
         # Rate limiting - don't spam
@@ -269,7 +269,7 @@ class CipherChanSystem:
         
         if category in CIPHER_PERSONALITY:
             message = random.choice(CIPHER_PERSONALITY[category])
-            print(f"[Cipher-chan] {message}")
+            print(f"[cipher-tan] {message}")
             self.last_quip_time = current_time
     
     def log_status(self, message):
@@ -577,9 +577,9 @@ class CipherChanSystem:
             self.config["brightness"] = brightness
             
             if self.save_config():
-                print(f"[Cipher-chan] Brightness set to {brightness:.2f} and saved!")
+                print(f"[cipher-tan] Brightness set to {brightness:.2f} and saved!")
             else:
-                print(f"[Cipher-chan] Brightness set to {brightness:.2f} but save failed!")
+                print(f"[cipher-tan] Brightness set to {brightness:.2f} but save failed!")
         
         except Exception as e:
             self.log_error(f"Brightness error: {e}")
@@ -598,9 +598,9 @@ class CipherChanSystem:
             
             if self.hardware.init_led():
                 if self.save_config():
-                    print(f"[Cipher-chan] LED pin changed to {new_pin} and saved!")
+                    print(f"[cipher-tan] LED pin changed to {new_pin} and saved!")
                 else:
-                    print(f"[Cipher-chan] LED pin changed to {new_pin} but save failed!")
+                    print(f"[cipher-tan] LED pin changed to {new_pin} but save failed!")
             else:
                 # Revert on failure
                 self.hardware.led_pin = old_pin
@@ -690,7 +690,7 @@ class CipherChanSystem:
                 raise ValueError("Mode must be on/off")
             
             self.save_config()
-            print(f"[Cipher-chan] Debug mode: {'ON' if self.debug_mode else 'OFF'}")
+            print(f"[cipher-tan] Debug mode: {'ON' if self.debug_mode else 'OFF'}")
         
         except Exception as e:
             self.log_error(f"Debug command error: {e}")
@@ -708,13 +708,13 @@ class CipherChanSystem:
             self.save_config()
             
             if level > 0.8:
-                print("[Cipher-chan] Maximum sass mode activated!")
+                print("[cipher-tan] Maximum sass mode activated!")
             elif level > 0.5:
-                print("[Cipher-chan] Moderate chatter mode engaged.")
+                print("[cipher-tan] Moderate chatter mode engaged.")
             elif level > 0.2:
-                print("[Cipher-chan] Quiet mode set.")
+                print("[cipher-tan] Quiet mode set.")
             else:
-                print("[Cipher-chan] Silent mode - all business!")
+                print("[cipher-tan] Silent mode - all business!")
         
         except Exception as e:
             self.log_error(f"Personality error: {e}")
@@ -722,7 +722,7 @@ class CipherChanSystem:
     def handle_system_test(self):
         """Comprehensive system test"""
         try:
-            print("[Cipher-chan] Running system diagnostics...")
+            print("[cipher-tan] Running system diagnostics...")
             
             # LED test
             led_test = "PASS"
@@ -792,7 +792,7 @@ class CipherChanSystem:
     
     def handle_reset(self):
         """System reset"""
-        print("[Cipher-chan] Resetting system... Goodbye!")
+        print("[cipher-tan] Resetting system... Goodbye!")
         try:
             self.hardware.set_color(255, 0, 0)  # Red
             time.sleep_ms(500)
@@ -842,7 +842,7 @@ def main():
     """Main entry point with error recovery"""
     try:
         # Initialize system
-        cipher_chan = CipherChanSystem()
+        cipher_chan = ciphertanSystem()
         
         # Run main loop
         cipher_chan.main_loop()

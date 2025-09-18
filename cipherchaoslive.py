@@ -582,7 +582,7 @@ class NetworkManager(QObject):
         
         return False
 
-class CipherChanWorker(QObject):
+class CIPHERTANWorker(QObject):
     """Enhanced worker with PQC support and better serial handling"""
     
     # Signals
@@ -1144,7 +1144,7 @@ class CipherChanWorker(QObject):
         except Exception as e:
             self.error_occurred.emit(f"Key logging failed: {str(e)}")
 
-class CipherChanMainWindow(QMainWindow):
+class CIPHERTANMainWindow(QMainWindow):
     """Main window with proper scaling and enhanced ESP32 v2.1 support"""
     
     def __init__(self):
@@ -1689,7 +1689,7 @@ class CipherChanMainWindow(QMainWindow):
     def setup_worker(self):
         """Setup worker thread"""
         self.worker_thread = QThread()
-        self.worker = CipherChanWorker()
+        self.worker = CIPHERTANWorker()
         self.worker.moveToThread(self.worker_thread)
         self.worker_thread.start()
     
@@ -2331,7 +2331,7 @@ def main():
         pass
 
     # Create and show main window
-    window = CipherChanMainWindow()
+    window = CIPHERTANMainWindow()
     window.show()
 
     # Run application
