@@ -20,7 +20,7 @@ This system has been tested on Windows 11 with ESP32-S3 development boards and s
 - **Real-time Visualization**: Live entropy monitoring with animated displays
 - **Enhanced Auditing**: NIST-inspired entropy quality assessment by "Echo-tan"
 - **Hardware Integration**: ESP32-S3 with WS2812 RGB LEDs and enhanced firmware
-- **Network Support**: CobraMesh/Headscale integration for distributed entropy
+- **Network Support**: Headscale integration for distributed entropy (work in progress)
 - **Experimental PQC**: Kyber512 KEM and Falcon512 signatures (work in progress)
 
 ### ESP32-S3 Features (Cipher-chan Enhanced Firmware v2.1)
@@ -28,7 +28,7 @@ This system has been tested on Windows 11 with ESP32-S3 development boards and s
 - **WiFi Entropy**: Environmental RF noise collection
 - **USB Jitter**: Timing-based entropy from USB communications
 - **RGB Control**: Dynamic LED feedback with 16M+ colors
-- **Personality System**: cipher-tan's cryptographic commentary
+- **Personality System**: Cipher-tan's cryptographic commentary
 - **Status Monitoring**: Real-time hardware telemetry
 
 ### GUI Features
