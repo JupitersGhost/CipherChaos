@@ -8,7 +8,7 @@
 
 ---
 
-CipherChaos is an advanced entropy generation system combining ESP32-S3 hardware with host-side processing to create high-quality random keys. Features post-quantum cryptography integration, real-time entropy visualization, and personality-driven interaction through "CipherChaos" and "Cipher-chan" characters.
+CipherChaos is an advanced entropy generation system combining ESP32-S3 hardware with host-side processing to create high-quality random keys. Features post-quantum cryptography integration, real-time entropy visualization, and personality-driven interaction through a quirky chaotic character, "Cipher-tan".
 
 This system has been tested on Windows 11 with ESP32-S3 development boards and supports both classical and post-quantum key wrapping.
 
