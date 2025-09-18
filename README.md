@@ -200,7 +200,7 @@ The PQC implementation will be completed in future releases. Currently, CipherCh
 
 ## Network Integration
 
-### CobraMesh Support
+### Network Support
 CipherChaos includes network monitoring for mesh environments:
 - **Headscale Detection**: Automatic Tailscale/Headscale connectivity detection
 - **Mesh Peers**: Real-time peer count monitoring
