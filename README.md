@@ -45,10 +45,10 @@ This system has been tested on Windows 11 with ESP32-S3 development boards and s
 # Python 3.8+ required
 pip install -r requirements.txt
 
-# For PQC support (optional):
+# For optional PQC support:
 # 1. Install Rust toolchain from https://rustup.rs/
-# 2. Install maturin: pip install maturin
-# 3. Build bindings: maturin develop
+# 2. Install maturin: pip install maturin==1.6.0
+# 3. Build bindings: maturin develop --release
 ```
 
 ### Hardware Setup
@@ -156,7 +156,71 @@ The firmware stores configuration in `cipher_enhanced_cfg.json`:
 
 ## Post-Quantum Cryptography
 
-CipherChaos includes functional post-quantum cryptography integration using NIST-standardized algorithms. The implementation provides hybrid classical-quantum protection through key wrapping and digital signatures.
+CipherChaos includes optional post-quantum cryptography integration using NIST-standardized algorithms. 
+The implementation provides hybrid classical-quantum protection through key wrapping and digital signatures. 
+If PQC bindings are not built, the system will still function with classical AES256 key generation.
+
+### Algorithms Supported
+- **Kyber512 KEM**: Key encapsulation mechanism for hybrid key wrapping
+- **Falcon512**: Digital signatures for key authentication
+- **Hybrid Approach**: Classical AES256 keys wrapped with post-quantum protection
+
+### Core Features
+- Real-time entropy quality assessment for PQC readiness (≥65% audit score, ≥6.0 bits/byte)
+- Automatic PQC key wrapping when entropy quality meets thresholds (if PQC is built)
+- Individual algorithm selection (Kyber512 KEM / Falcon512 signatures)
+- Secure key storage with separate public/private key files
+- Live status monitoring showing current key protection level
+
+### Building PQC Support
+```bash
+# Install Rust toolchain first:
+# https://rustup.rs/
+
+# Install maturin (Python build tool for Rust)
+pip install maturin==1.6.0
+
+# Build the PQC bindings
+maturin develop --release
+
+# Verify installation
+python -c "import pqcrypto_bindings; print('PQC bindings available')"
+```
+
+### Dependencies
+
+The PQC implementation uses these **Rust crate dependencies** (already configured in `Cargo.toml`):
+- `pqcrypto-kyber = "0.4.0"` - Kyber512 KEM implementation
+- `pqcrypto-falcon = "0.4.0"` - Falcon512 signature implementation  
+- `pqcrypto-traits = "0.3.5"` - Common traits for PQC algorithms
+- `pyo3 = { version = "0.20.3", features = ["extension-module"] }`
+
+**Build tool dependency:**
+- `maturin = "1.6.0"`
+
+### Usage
+1. **Enable PQC**: Check "Enable PQC Key Wrapping" in the Chaos Control panel
+2. **Algorithm Selection**: Choose Kyber512 KEM and/or Falcon512 signatures
+3. **Entropy Generation**: Start chaos generation - PQC activates automatically when entropy quality is sufficient
+4. **Key Storage**: PQC-wrapped keys are automatically saved to the `keys/` directory
+
+### Current Status
+- Kyber512 key encapsulation and hybrid wrapping
+- Falcon512 digital signatures for key authentication
+- Real-time entropy auditing with PQC readiness assessment
+- GUI integration with live status updates
+- Automatic key storage and logging
+
+**Security Considerations:**
+- Implementation uses NIST-standardized algorithms
+- Entropy thresholds are configurable but set to practical defaults
+- Keys are stored separately from wrapped data for security
+- Classical fallback maintains compatibility when PQC is not enabled
+
+**Limitations:**
+- PQC bindings compilation required for functionality
+- Key unwrapping/verification utilities not included in GUI
+- Production deployment should undergo independent security review
 
 ### Current Implementation
 
