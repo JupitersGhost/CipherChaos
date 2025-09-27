@@ -25,7 +25,7 @@ This system has been tested on Windows 11 with ESP32-S3 development boards and s
 
 ### ESP32-S3 Features (Cipher-chan Enhanced Firmware v2.1)
 - **TRNG Streaming**: High-frequency true random number generation
-- **WiFi Entropy**: Environmental RF noise collection
+- **WiFi Entropy**: Environmental RF noise collection --WIP--
 - **USB Jitter**: Timing-based entropy from USB communications
 - **RGB Control**: Dynamic LED feedback with 16M+ colors
 - **Personality System**: Cipher-tan's cryptographic commentary
