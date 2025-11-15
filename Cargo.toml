@@ -8,14 +8,18 @@ name = "pqcrypto_bindings"
 crate-type = ["cdylib"]
 
 [dependencies]
-# KEM: Kyber512
-pqcrypto-kyber = "0.4.0"
-# Signature: Falcon512
-pqcrypto-falcon = "0.4.0"
-# The traits crate for as_bytes()/from_bytes()
+# Using pqcrypto-kyber (the original Kyber, not ML-KEM yet)
+# ML-KEM support in pqcrypto is still being finalized
+pqcrypto-kyber = "0.8.1"
+
+# Falcon signatures
+pqcrypto-falcon = "0.3.0"
+
+# Traits for as_bytes()/from_bytes()
 pqcrypto-traits = "0.3.5"
-# PyO3 for Python bindings
-pyo3 = { version = "0.20", features = ["extension-module"] }
+
+# PyO3 for Python bindings - updated version
+pyo3 = { version = "0.21", features = ["extension-module"] }
 
 [build-dependencies]
-maturin = "1"
+# Not needed - maturin handles this
