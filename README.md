@@ -21,11 +21,11 @@ This system has been tested on Windows 11 with ESP32-S3 development boards and s
 - **Enhanced Auditing**: NIST-inspired entropy quality assessment by "Echo-tan"
 - **Hardware Integration**: ESP32-S3 with WS2812 RGB LEDs and enhanced firmware
 - **Network Support**: Headscale integration for distributed entropy (work in progress)
-- **Experimental PQC**: Kyber512 KEM and Falcon512 signatures (work in progress)
+- **Post-Quantum Cryptography**: Kyber512 KEM and Falcon512 signatures with hybrid key wrapping
 
 ### ESP32-S3 Features (Cipher-chan Enhanced Firmware v2.1)
 - **TRNG Streaming**: High-frequency true random number generation
-- **WiFi Entropy**: Environmental RF noise collection
+- **WiFi Entropy**: Environmental RF noise collection --WIP--
 - **USB Jitter**: Timing-based entropy from USB communications
 - **RGB Control**: Dynamic LED feedback with 16M+ colors
 - **Personality System**: Cipher-tan's cryptographic commentary
@@ -45,11 +45,10 @@ This system has been tested on Windows 11 with ESP32-S3 development boards and s
 # Python 3.8+ required
 pip install -r requirements.txt
 
-# For experimental PQC support (optional):
+# For optional PQC support:
 # 1. Install Rust toolchain from https://rustup.rs/
-# 2. Install maturin: pip install maturin
-# 3. Build bindings: maturin develop
-# Note: PQC features are experimental and not fully functional
+# 2. Install maturin: pip install maturin==1.6.0
+# 3. Build bindings: maturin develop --release
 ```
 
 ### Hardware Setup
@@ -84,18 +83,17 @@ pip install -r requirements.txt
    pip install -r requirements.txt
    ```
 
-4. **Build PQC bindings** (optional - experimental feature):
+4. **Build PQC bindings** (optional):
    ```bash
-   # Only needed if you want to experiment with PQC features
    # Install Rust toolchain first: https://rustup.rs/
    
    # Install maturin (Python build tool for Rust)
    pip install maturin
    
-   # Build and install the experimental PQC bindings
+   # Build and install the PQC bindings
    maturin develop
    
-   # Note: This enables the PQC checkbox in GUI, but functionality is limited
+   # This enables full PQC functionality in the GUI
    ```
 
 5. **Flash ESP32-S3 firmware**:
@@ -158,18 +156,88 @@ The firmware stores configuration in `cipher_enhanced_cfg.json`:
 
 ## Post-Quantum Cryptography
 
-**⚠️ EXPERIMENTAL FEATURE - WORK IN PROGRESS ⚠️**
+CipherChaos includes optional post-quantum cryptography integration using NIST-standardized algorithms. 
+The implementation provides hybrid classical-quantum protection through key wrapping and digital signatures. 
+If PQC bindings are not built, the system will still function with classical AES256 key generation.
 
-The PQC implementation is currently under development and should be considered experimental. While the basic framework exists, the functionality is incomplete and not recommended for production use.
+### Algorithms Supported
+- **Kyber512 KEM**: Key encapsulation mechanism for hybrid key wrapping
+- **Falcon512**: Digital signatures for key authentication
+- **Hybrid Approach**: Classical AES256 keys wrapped with post-quantum protection
 
-### Current Implementation Status
-- **Framework**: Basic PQC manager and key wrapping structure implemented
-- **Algorithms**: Kyber512 KEM and Falcon512 signatures (via Rust bindings)
-- **Status**: Bindings compile but full integration is incomplete
-- **GUI Integration**: PQC checkbox present but functionality limited
-- **Key Storage**: PQC-wrapped key saving partially implemented
+### Core Features
+- Real-time entropy quality assessment for PQC readiness (≥65% audit score, ≥6.0 bits/byte)
+- Automatic PQC key wrapping when entropy quality meets thresholds (if PQC is built)
+- Individual algorithm selection (Kyber512 KEM / Falcon512 signatures)
+- Secure key storage with separate public/private key files
+- Live status monitoring showing current key protection level
 
-### Building PQC Support (Optional/Experimental)
+### Building PQC Support
+```bash
+# Install Rust toolchain first:
+# https://rustup.rs/
+
+# Install maturin (Python build tool for Rust)
+pip install maturin==1.6.0
+
+# Build the PQC bindings
+maturin develop --release
+
+# Verify installation
+python -c "import pqcrypto_bindings; print('PQC bindings available')"
+```
+
+### Dependencies
+
+The PQC implementation uses these **Rust crate dependencies** (already configured in `Cargo.toml`):
+- `pqcrypto-kyber = "0.4.0"` - Kyber512 KEM implementation
+- `pqcrypto-falcon = "0.4.0"` - Falcon512 signature implementation  
+- `pqcrypto-traits = "0.3.5"` - Common traits for PQC algorithms
+- `pyo3 = { version = "0.20.3", features = ["extension-module"] }`
+
+**Build tool dependency:**
+- `maturin = "1.6.0"`
+
+### Usage
+1. **Enable PQC**: Check "Enable PQC Key Wrapping" in the Chaos Control panel
+2. **Algorithm Selection**: Choose Kyber512 KEM and/or Falcon512 signatures
+3. **Entropy Generation**: Start chaos generation - PQC activates automatically when entropy quality is sufficient
+4. **Key Storage**: PQC-wrapped keys are automatically saved to the `keys/` directory
+
+### Current Status
+- Kyber512 key encapsulation and hybrid wrapping
+- Falcon512 digital signatures for key authentication
+- Real-time entropy auditing with PQC readiness assessment
+- GUI integration with live status updates
+- Automatic key storage and logging
+
+**Security Considerations:**
+- Implementation uses NIST-standardized algorithms
+- Entropy thresholds are configurable but set to practical defaults
+- Keys are stored separately from wrapped data for security
+- Classical fallback maintains compatibility when PQC is not enabled
+
+**Limitations:**
+- PQC bindings compilation required for functionality
+- Key unwrapping/verification utilities not included in GUI
+- Production deployment should undergo independent security review
+
+### Current Implementation
+
+**Algorithms Supported:**
+- **Kyber512 KEM**: Key encapsulation mechanism for hybrid key wrapping
+- **Falcon512**: Digital signatures for key authentication
+- **Hybrid Approach**: Classical AES256 keys wrapped with post-quantum protection
+
+**Core Features:**
+- Real-time entropy quality assessment for PQC readiness (≥65% audit score, ≥6.0 bits/byte)
+- Automatic PQC key wrapping when entropy quality meets thresholds
+- Individual algorithm selection (Kyber512 KEM / Falcon512 signatures)
+- Secure key storage with separate public/private key files
+- Live status monitoring showing current key protection level
+
+### Building PQC Support
+
 ```bash
 # Install Rust toolchain first:
 # https://rustup.rs/
@@ -177,54 +245,52 @@ The PQC implementation is currently under development and should be considered e
 # Install maturin (Python build tool for Rust)
 pip install maturin
 
-# Build the experimental PQC bindings
+# Build the PQC bindings
 maturin develop
 
-# Note: Even with successful compilation, PQC features are not fully functional
+# Verify installation
+python -c "import pqcrypto_bindings; print('PQC bindings available')"
 ```
 
-### What Works vs. What Doesn't
-**Currently Working:**
-- Rust bindings compilation
-- Basic PQC manager initialization
-- Classical entropy generation and key forging
+### Dependencies
 
-**Not Yet Working:**
-- Complete PQC key wrapping integration
-- Reliable PQC key unwrapping/verification
-- Full post-quantum key lifecycle management
-- Production-ready PQC entropy assessment
+The PQC implementation uses these **Rust crate dependencies** (already configured in `Cargo.toml`):
+- `pqcrypto-kyber = "0.4.0"` - Kyber512 KEM implementation
+- `pqcrypto-falcon = "0.4.0"` - Falcon512 signature implementation  
+- `pqcrypto-traits = "0.3.5"` - Common traits for PQC algorithms
+- `pyo3 = { version = "0.20", features = ["extension-module"] }` - Python bindings
 
-### Future Development
-The PQC implementation will be completed in future releases. Currently, CipherChaos operates primarily in classical cryptography mode with high-quality entropy generation suitable for standard AES256 keys.
+**Build tool dependency:**
+- `maturin = "1"` - Rust-to-Python build system
 
-## Network Integration
+### Usage
 
-### Network Support
-CipherChaos includes network monitoring for mesh environments:
-- **Headscale Detection**: Automatic Tailscale/Headscale connectivity detection
-- **Mesh Peers**: Real-time peer count monitoring
-- **Uplink Status**: Network connectivity visualization
+1. **Enable PQC**: Check "Enable PQC Key Wrapping" in the Chaos Control panel
+2. **Algorithm Selection**: Choose Kyber512 KEM and/or Falcon512 signatures
+3. **Entropy Generation**: Start chaos generation - PQC activates automatically when entropy quality is sufficient
+4. **Key Storage**: PQC-wrapped keys are automatically saved to the `keys/` directory
 
-### Network Commands
-Send commands to remote CipherChaos instances through the mesh (future feature).
+### Current Status
 
-## Entropy Quality & Auditing
+**Fully Functional:**
+- Kyber512 key encapsulation and hybrid wrapping
+- Falcon512 digital signatures for key authentication
+- Real-time entropy auditing with PQC readiness assessment
+- GUI integration with live status updates
+- Automatic key storage and logging
 
-### Echo-tan Entropy Auditor
-The system includes comprehensive entropy assessment:
-- **Frequency Test**: Bit distribution analysis
-- **Runs Test**: Consecutive bit pattern detection
-- **Chi-Square Test**: Statistical randomness verification
-- **Shannon Entropy**: Information density measurement
-- **Compression Test**: Predictability assessment
-- **NIST-Inspired Tests**: Block frequency and longest run analysis
+**Security Considerations:**
+- Implementation uses NIST-standardized algorithms
+- Entropy thresholds are configurable but set to practical defaults
+- Keys are stored separately from wrapped data for security
+- Classical fallback maintains compatibility when PQC is disabled
 
-### PQC Readiness
-Entropy is assessed for post-quantum cryptographic suitability:
-- **Minimum Score**: 70% overall quality
-- **Entropy Rate**: ≥6.5 bits per byte
-- **All Tests**: Must pass basic statistical requirements
+**Limitations:**
+- PQC bindings compilation required for functionality
+- Key unwrapping/verification utilities not included in GUI
+- Production deployment should undergo independent security review
+
+The PQC implementation provides forward security against quantum computing threats while maintaining backward compatibility with classical cryptographic workflows.
 
 ## Character Personalities
 

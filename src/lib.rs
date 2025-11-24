@@ -1,93 +1,167 @@
-
-use pyo3::prelude::*;
 use pyo3::exceptions::PyValueError;
+use pyo3::prelude::*;
+use pyo3::types::PyBytes;
 
-// ─── Kyber (KEM) Imports ──────────────────────────────────────────────────────
+// ─── Kyber-512 ────────────────────────────────────────────────────────────────
 use pqcrypto_kyber::kyber512::{
-    keypair as kyber_keypair,
-    encapsulate as kyber_encapsulate_impl,
     decapsulate as kyber_decapsulate_impl,
+    encapsulate as kyber_encapsulate_impl,
+    keypair as kyber_keypair_impl,
+    Ciphertext as KyberCiphertext,
     PublicKey as KyberPublicKey,
     SecretKey as KyberSecretKey,
-    Ciphertext as KyberCiphertext,
+    SharedSecret as KyberSharedSecret,
 };
-use pqcrypto_traits::kem::{PublicKey as _, SecretKey as _, Ciphertext as _, SharedSecret as _};
 
-// ─── Falcon (Signature) Imports ───────────────────────────────────────────────
+// ─── Falcon-512 Signatures ────────────────────────────────────────────────────
 use pqcrypto_falcon::falcon512::{
-    keypair as falcon_keypair,
-    sign as falcon_sign_impl,
-    open as falcon_open_impl,
+    DetachedSignature as FalconDetachedSignature,
     PublicKey as FalconPublicKey,
     SecretKey as FalconSecretKey,
-    SignedMessage as FalconSignedMessage,
+    detached_sign as falcon_detached_sign_impl,
+    keypair as falcon_keypair_impl,
+    verify_detached_signature as falcon_verify_impl,
 };
-use pqcrypto_traits::sign::{PublicKey as _, SecretKey as _, SignedMessage as _};
 
-// ─── Kyber Exposed Functions ──────────────────────────────────────────────────
-#[pyfunction]
-fn kyber_keygen() -> PyResult<(Vec<u8>, Vec<u8>)> {
-    let (pk, sk) = kyber_keypair();
-    Ok((pk.as_bytes().to_vec(), sk.as_bytes().to_vec()))
+// ─── Trait Imports ────────────────────────────────────────────────────────────
+use pqcrypto_traits::kem as kem_traits;
+use pqcrypto_traits::sign as sign_traits;
+
+// ───────────────────────────────────────────────────────────────────────────────
+// Kyber-512 helpers
+// ───────────────────────────────────────────────────────────────────────────────
+
+fn kyber_pk_from_bytes(bytes: &[u8]) -> PyResult<KyberPublicKey> {
+    <KyberPublicKey as kem_traits::PublicKey>::from_bytes(bytes)
+        .map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
-#[pyfunction]
-fn kyber_encapsulate(pk_bytes: Vec<u8>) -> PyResult<(Vec<u8>, Vec<u8>)> {
-    let pk = KyberPublicKey::from_bytes(&pk_bytes)
-        .map_err(|_| PyValueError::new_err("Invalid Kyber public key"))?;
+fn kyber_sk_from_bytes(bytes: &[u8]) -> PyResult<KyberSecretKey> {
+    <KyberSecretKey as kem_traits::SecretKey>::from_bytes(bytes)
+        .map_err(|e| PyValueError::new_err(e.to_string()))
+}
 
-    // ORDER IS (ss, ct) in pqcrypto-kyber >= 0.4
+fn kyber_ct_from_bytes(bytes: &[u8]) -> PyResult<KyberCiphertext> {
+    <KyberCiphertext as kem_traits::Ciphertext>::from_bytes(bytes)
+        .map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
+// ─── Kyber: keygen ────────────────────────────────────────────────────────────
+
+#[pyfunction]
+fn kyber_keygen(py: Python) -> PyResult<(Py<PyBytes>, Py<PyBytes>)> {
+    let (pk, sk) = kyber_keypair_impl();
+
+    let pk_bytes = <KyberPublicKey as kem_traits::PublicKey>::as_bytes(&pk);
+    let sk_bytes = <KyberSecretKey as kem_traits::SecretKey>::as_bytes(&sk);
+
+    Ok((
+        PyBytes::new_bound(py, pk_bytes).unbind(),
+        PyBytes::new_bound(py, sk_bytes).unbind(),
+    ))
+}
+
+// ─── Kyber: encapsulate(pk) -> (ciphertext, shared_secret) ────────────────────
+
+#[pyfunction]
+fn kyber_encapsulate(py: Python, pk_bytes: &[u8]) -> PyResult<(Py<PyBytes>, Py<PyBytes>)> {
+    let pk = kyber_pk_from_bytes(pk_bytes)?;
+
     let (ss, ct) = kyber_encapsulate_impl(&pk);
 
-    // Return (ciphertext, shared-secret) to Python
-    Ok((ct.as_bytes().to_vec(), ss.as_bytes().to_vec()))
+    let ss_bytes = <KyberSharedSecret as kem_traits::SharedSecret>::as_bytes(&ss);
+    let ct_bytes = <KyberCiphertext as kem_traits::Ciphertext>::as_bytes(&ct);
+
+    // Return (ciphertext, shared_secret)
+    Ok((
+        PyBytes::new_bound(py, ct_bytes).unbind(),
+        PyBytes::new_bound(py, ss_bytes).unbind(),
+    ))
 }
 
+// ─── Kyber: decapsulate(sk, ct) -> ss ─────────────────────────────────────────
+
 #[pyfunction]
-fn kyber_decapsulate(sk_bytes: Vec<u8>, ct_bytes: Vec<u8>) -> PyResult<Vec<u8>> {
-    let sk = KyberSecretKey::from_bytes(&sk_bytes)
-        .map_err(|_| PyValueError::new_err("Invalid Kyber secret key"))?;
-    let ct = KyberCiphertext::from_bytes(&ct_bytes)
-        .map_err(|_| PyValueError::new_err("Invalid Kyber ciphertext"))?;
+fn kyber_decapsulate(py: Python, sk_bytes: &[u8], ct_bytes: &[u8]) -> PyResult<Py<PyBytes>> {
+    let sk = kyber_sk_from_bytes(sk_bytes)?;
+    let ct = kyber_ct_from_bytes(ct_bytes)?;
+
     let ss = kyber_decapsulate_impl(&ct, &sk);
-    Ok(ss.as_bytes().to_vec())
+    let ss_bytes = <KyberSharedSecret as kem_traits::SharedSecret>::as_bytes(&ss);
+
+    Ok(PyBytes::new_bound(py, ss_bytes).unbind())
 }
 
-// ─── Falcon Exposed Functions ─────────────────────────────────────────────────
-#[pyfunction]
-fn falcon_keygen() -> PyResult<(Vec<u8>, Vec<u8>)> {
-    let (pk, sk) = falcon_keypair();
-    Ok((pk.as_bytes().to_vec(), sk.as_bytes().to_vec()))
+// ───────────────────────────────────────────────────────────────────────────────
+// Falcon-512 helpers
+// ───────────────────────────────────────────────────────────────────────────────
+
+fn falcon_pk_from_bytes(bytes: &[u8]) -> PyResult<FalconPublicKey> {
+    <FalconPublicKey as sign_traits::PublicKey>::from_bytes(bytes)
+        .map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
-#[pyfunction]
-fn falcon_sign(sk_bytes: Vec<u8>, message: Vec<u8>) -> PyResult<Vec<u8>> {
-    let sk = FalconSecretKey::from_bytes(&sk_bytes)
-        .map_err(|_| PyValueError::new_err("Invalid Falcon secret key"))?;
-    let sm = falcon_sign_impl(&message, &sk);
-    Ok(sm.as_bytes().to_vec())
+fn falcon_sk_from_bytes(bytes: &[u8]) -> PyResult<FalconSecretKey> {
+    <FalconSecretKey as sign_traits::SecretKey>::from_bytes(bytes)
+        .map_err(|e| PyValueError::new_err(e.to_string()))
 }
 
+fn falcon_sig_from_bytes(bytes: &[u8]) -> PyResult<FalconDetachedSignature> {
+    <FalconDetachedSignature as sign_traits::DetachedSignature>::from_bytes(bytes)
+        .map_err(|e| PyValueError::new_err(e.to_string()))
+}
+
+// ─── Falcon: keygen ───────────────────────────────────────────────────────────
+
 #[pyfunction]
-fn falcon_verify(pk_bytes: Vec<u8>, sm_bytes: Vec<u8>, message: Vec<u8>) -> PyResult<bool> {
-    let pk = FalconPublicKey::from_bytes(&pk_bytes)
-        .map_err(|_| PyValueError::new_err("Invalid Falcon public key"))?;
-    let sm = FalconSignedMessage::from_bytes(&sm_bytes)
-        .map_err(|_| PyValueError::new_err("Invalid Falcon signed message"))?;
-    match falcon_open_impl(&sm, &pk) {
-        Ok(opened) => Ok(opened == message),
-        Err(_) => Ok(false),
-    }
+fn falcon_keygen(py: Python) -> PyResult<(Py<PyBytes>, Py<PyBytes>)> {
+    let (pk, sk) = falcon_keypair_impl();
+
+    let pk_bytes = <FalconPublicKey as sign_traits::PublicKey>::as_bytes(&pk);
+    let sk_bytes = <FalconSecretKey as sign_traits::SecretKey>::as_bytes(&sk);
+
+    Ok((
+        PyBytes::new_bound(py, pk_bytes).unbind(),
+        PyBytes::new_bound(py, sk_bytes).unbind(),
+    ))
+}
+
+// ─── Falcon: sign(sk, msg) -> detached signature bytes ────────────────────────
+
+#[pyfunction]
+fn falcon_sign(py: Python, sk_bytes: &[u8], msg: &[u8]) -> PyResult<Py<PyBytes>> {
+    let sk = falcon_sk_from_bytes(sk_bytes)?;
+    let sig = falcon_detached_sign_impl(msg, &sk);
+
+    let sig_bytes = <FalconDetachedSignature as sign_traits::DetachedSignature>::as_bytes(&sig);
+
+    Ok(PyBytes::new_bound(py, sig_bytes).unbind())
+}
+
+// ─── Falcon: verify(pk, msg, sig) -> bool ─────────────────────────────────────
+
+#[pyfunction]
+fn falcon_verify(pk_bytes: &[u8], msg: &[u8], sig_bytes: &[u8]) -> PyResult<bool> {
+    let pk = falcon_pk_from_bytes(pk_bytes)?;
+    let sig = falcon_sig_from_bytes(sig_bytes)?;
+
+    let result = falcon_verify_impl(&sig, msg, &pk);
+    Ok(result.is_ok())
 }
 
 // ─── PyO3 Module Registration ─────────────────────────────────────────────────
+
 #[pymodule]
-fn pqcrypto_bindings(_py: Python, m: &PyModule) -> PyResult<()> {
+fn pqcrypto_bindings(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
+    // Kyber-512
     m.add_function(wrap_pyfunction!(kyber_keygen, m)?)?;
     m.add_function(wrap_pyfunction!(kyber_encapsulate, m)?)?;
     m.add_function(wrap_pyfunction!(kyber_decapsulate, m)?)?;
+
+    // Falcon-512
     m.add_function(wrap_pyfunction!(falcon_keygen, m)?)?;
     m.add_function(wrap_pyfunction!(falcon_sign, m)?)?;
     m.add_function(wrap_pyfunction!(falcon_verify, m)?)?;
+
     Ok(())
 }
